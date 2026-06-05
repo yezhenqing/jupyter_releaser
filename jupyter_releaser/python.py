@@ -22,9 +22,10 @@ PYPROJECT = util.PYPROJECT
 SETUP_PY = util.SETUP_PY
 
 #PYPI_GH_API_TOKEN_URL = "https://pypi.org/_/oidc/github/mint-token"  # noqa: S105
-PYPI_GH_API_TOKEN_URL = os.environ.get(
-    "PYPI_TOKEN_URL", "https://pypi.org/_/oidc/github/mint-token"
-)
+#PYPI_GH_API_TOKEN_URL = os.environ.get(
+#    "PYPI_TOKEN_URL", "https://pypi.org/_/oidc/github/mint-token"
+#)
+PYPI_GH_API_TOKEN_URL = "https://test.pypi.org/_/oidc/github/mint-token"
 
 def build_dist(dist_dir, clean=True):
     """Build the python dist files into a dist folder"""
