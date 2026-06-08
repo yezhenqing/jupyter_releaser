@@ -118,10 +118,10 @@ def fetch_pypi_api_token() -> "str":
 
     # Normalize the URL: handle None, strip whitespace, and enforce a trailing slash.
     twine_repo_url = (os.environ.get("TWINE_REPOSITORY_URL") or "").strip().rstrip("/") + "/"
-    
+
     if twine_repo_url == TEST_PYPI_LEGACY_URL:
         target = "testpypi"
-        api_token_url = api_token_url.replace('pypi', 'testpypi')
+        api_token_url = api_token_url.replace('pypi', 'test.pypi')
 
     url = os.environ.get(util.GH_ID_TOKEN_URL_VAR, "")
     auth = os.environ.get(util.GH_ID_TOKEN_TOKEN_VAR, "")
