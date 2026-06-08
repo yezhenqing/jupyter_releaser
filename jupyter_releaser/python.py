@@ -21,11 +21,9 @@ from jupyter_releaser import util
 PYPROJECT = util.PYPROJECT
 SETUP_PY = util.SETUP_PY
 
-#PYPI_GH_API_TOKEN_URL = "https://pypi.org/_/oidc/github/mint-token"  # noqa: S105
-#PYPI_GH_API_TOKEN_URL = os.environ.get(
-#    "PYPI_TOKEN_URL", "https://pypi.org/_/oidc/github/mint-token"
-#)
-PYPI_GH_API_TOKEN_URL = "https://test.pypi.org/_/oidc/github/mint-token"
+PYPI_GH_API_TOKEN_URL = "https://pypi.org/_/oidc/github/mint-token"  # noqa: S105
+#TESTPYPI_GH_API_TOKEN_URL = "https://test.pypi.org/_/oidc/github/mint-token"  # noqa: S105
+TEST_PYPI_LEGACY_URL = "https://test.pypi.org/legacy/"
 
 def build_dist(dist_dir, clean=True):
     """Build the python dist files into a dist folder"""
@@ -115,6 +113,16 @@ def fetch_pypi_api_token() -> "str":
     """
     util.log("Fetching PyPI OIDC token...")
 
+    # Determine deployment target (PyPI vs. TestPyPI) based on TWINE_REPOSITORY_URL.
+    target, api_token_url  = "pypi", PYPI_GH_API_TOKEN_URL
+
+    # Normalize the URL: handle None, strip whitespace, and enforce a trailing slash.
+    twine_repo_url = (os.environ.get("TWINE_REPOSITORY_URL") or "").strip().rstrip("/") + "/"
+    
+    if twine_repo_url == TEST_PYPI_LEGACY_URL:
+        target = "testpypi"
+        api_token_url = api_token_url.replace('pypi', 'testpypi')
+
     url = os.environ.get(util.GH_ID_TOKEN_URL_VAR, "")
     auth = os.environ.get(util.GH_ID_TOKEN_TOKEN_VAR, "")
     if not url or not auth:
@@ -126,7 +134,8 @@ def fetch_pypi_api_token() -> "str":
     headers = {"Authorization": f"bearer {auth}", "Accept": "application/octet-stream"}
 
     sink = BytesIO()
-    with requests.get(f"{url}&audience=pypi", headers=headers, stream=True, timeout=60) as r:
+    #with requests.get(f"{url}&audience=pypi", headers=headers, stream=True, timeout=60) as r:
+    with requests.get(f"{url}&audience={target}", headers=headers, stream=True, timeout=60) as r:
         r.raise_for_status()
         for chunk in r.iter_content(chunk_size=8192):
             sink.write(chunk)
@@ -139,7 +148,8 @@ def fetch_pypi_api_token() -> "str":
 
     util.log("Fetching PyPI API token...")
     sink = BytesIO()
-    with requests.post(PYPI_GH_API_TOKEN_URL, json={"token": oidc_token}, timeout=10) as r:
+    #with requests.post(PYPI_GH_API_TOKEN_URL, json={"token": oidc_token}, timeout=10) as r:
+    with requests.post(api_token_url, json={"token": oidc_token}, timeout=10) as r:    
         r.raise_for_status()
         for chunk in r.iter_content(chunk_size=8192):
             sink.write(chunk)
